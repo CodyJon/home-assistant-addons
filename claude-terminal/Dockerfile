@@ -20,9 +20,9 @@ RUN apk add --no-cache \
     tree \
     tmux \
     yq
-# Install Claude Code CLI via npm and find where it lands
+# Install Claude Code CLI via npm (avoids musl binary incompatibility)
 RUN npm install -g @anthropic-ai/claude-code \
-    && which claude || find / -name "claude" -type f 2>/dev/null | head -5
+    && ln -sf $(npm root -g)/@anthropic-ai/claude-code/bin/claude /usr/local/bin/claude
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config
 WORKDIR /config
