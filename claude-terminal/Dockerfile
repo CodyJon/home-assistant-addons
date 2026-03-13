@@ -22,7 +22,8 @@ RUN apk add --no-cache \
     yq
 # Install Claude Code CLI via npm (avoids musl binary incompatibility)
 RUN npm install -g @anthropic-ai/claude-code \
-    && ln -sf $(npm root -g)/@anthropic-ai/claude-code/bin/claude /usr/local/bin/claude
+    && echo '#!/bin/sh\nexec node /usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js "$@"' > /usr/local/bin/claude \
+    && chmod +x /usr/local/bin/claude
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config
 WORKDIR /config
