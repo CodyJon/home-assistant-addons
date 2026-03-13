@@ -295,10 +295,21 @@ run_health_check() {
 main() {
     bashio::log.info "Initializing Claude Terminal add-on..."
 
-    # Run diagnostics first (especially helpful for VirtualBox issues)
+    # Run diagnostics first
     run_health_check
 
     init_environment
+
+    # Fix Claude symlink if broken (npm install puts cli.js not a binary)
+    if [ -L /usr/local/bin/claude ] && [ ! -e /usr/local/bin/claude ]; then
+        bashio::log.info "Fixing broken Claude symlink..."
+        rm /usr/local/bin/claude
+        echo '#!/bin/sh' > /usr/local/bin/claude
+        echo 'exec node /usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js "$@"' >> /usr/local/bin/claude
+        chmod +x /usr/local/bin/claude
+        bashio::log.info "Claude symlink fixed ✓"
+    fi
+
     install_tools
     setup_session_picker
     install_persistent_packages
