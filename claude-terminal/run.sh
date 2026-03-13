@@ -24,16 +24,14 @@ init_environment() {
     # Set permissions
     chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir"
 
-    # Ensure Claude native binary is available at $HOME/.local/bin/claude
-    # The native installer places it at /root/.local/bin/claude during Docker build,
-    # but at runtime HOME=/data/home, so Claude's self-check looks in /data/home/.local/bin/
+    # Ensure Claude npm binary is available at $HOME/.local/bin/claude
     local native_bin_dir="$data_home/.local/bin"
     if [ ! -d "$native_bin_dir" ]; then
         mkdir -p "$native_bin_dir"
     fi
-    if [ -f /root/.local/bin/claude ] && [ ! -f "$native_bin_dir/claude" ]; then
-        ln -sf /root/.local/bin/claude "$native_bin_dir/claude"
-        bashio::log.info "  - Claude native binary linked: $native_bin_dir/claude"
+    if [ -f /usr/local/bin/claude ] && [ ! -f "$native_bin_dir/claude" ]; then
+        ln -sf /usr/local/bin/claude "$native_bin_dir/claude"
+        bashio::log.info "  - Claude npm binary linked: $native_bin_dir/claude"
     fi
 
     # Set XDG and application environment variables
@@ -227,8 +225,6 @@ setup_session_picker() {
     fi
 }
 
-# Legacy monitoring functions removed - using simplified /data approach
-
 # Determine Claude launch command based on configuration
 get_claude_launch_command() {
     local auto_launch_claude
@@ -252,7 +248,6 @@ get_claude_launch_command() {
     fi                 
 }
 
-
 # Start main web terminal
 start_web_terminal() {
     local port=7681
@@ -273,11 +268,9 @@ start_web_terminal() {
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
     
     # Set TTYD environment variable for tmux configuration
-    # This disables tmux mouse mode since ttyd has better mouse handling for web terminals
     export TTYD=1
 
     # Run ttyd with keepalive configuration to prevent WebSocket disconnects
-    # See: https://github.com/heytcass/home-assistant-addons/issues/24
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \
